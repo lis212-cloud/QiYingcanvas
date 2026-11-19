@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>七影画布 Flowspace · AI 短剧无限画布</title>
+<meta name="description" content="七影画布 Flowspace：剧本、脚本、参考图、关键帧、视频片段到合成成片的节点编排桌面软件，可直连 ComfyUI，工程保存在本机。">
+<style>
+  :root{
+    --bg:#101318; --bg-2:#171c23; --bg-3:#1f252e; --line:#2b333e;
+    --text:#e6ebf0; --text-2:#9aa7b4; --text-3:#6b7885;
+    --accent:#3b82f6; --radius:14px; --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ===== 顶部导航 ===== */
+  header{position:sticky;top:0;z-index:20;background:rgba(16,19,24,.92);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+  .logo{width:30px;height:30px;border-radius:8px;background:var(--bg-3);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;color:var(--text-2)}
+  .brand small{color:var(--text-3);font-weight:400;font-size:12px;margin-left:2px}
+  .nav-links{display:flex;gap:22px;font-size:14px;color:var(--text-2)}
+  .nav-links a:hover{color:var(--text)}
+
+  /* ===== Hero ===== */
+  .hero{padding:72px 0 56px;text-align:center}
+  .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;color:var(--text-2);font-size:13px;margin-bottom:24px;background:var(--bg-2)}
+  h1{font-size:38px;line-height:1.25;font-weight:700;letter-spacing:-.3px;margin-bottom:18px}
+  .sub{max-width:660px;margin:0 auto 32px;color:var(--text-2);font-size:16px}
+  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border-radius:12px;font-size:15px;font-weight:600;transition:opacity .15s}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{opacity:.9}
+  .btn-ghost{border:1px solid var(--line);color:var(--text-2)}
+  .btn-ghost:hover{color:var(--text);border-color:var(--text-3)}
+  .meta{margin-top:18px;font-size:13px;color:var(--text-3)}
+
+  /* ===== 区块 ===== */
+  section{padding:56px 0}
+  .sec-title{font-size:26px;font-weight:700;margin-bottom:8px}
+  .sec-desc{color:var(--text-2);margin-bottom:32px;max-width:620px;font-size:15px}
+
+  /* 功能卡片 */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .card h3{font-size:16px;margin-bottom:8px}
+  .card p{color:var(--text-2);font-size:14px}
+
+  /* 界面预览 */
+  .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .shot{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .shot-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .shot-bar i{width:9px;height:9px;border-radius:50%;background:var(--bg-3);display:block}
+  .shot-bar span{margin-left:8px;font-size:12px;color:var(--text-3)}
+  .shot img{display:block;width:100%;height:auto;border-top:1px solid var(--line)}
+  .shot figcaption{padding:14px 16px 16px;font-size:13px;color:var(--text-2)}
+  .shot figcaption b{display:block;color:var(--text);font-size:14px;margin-bottom:4px}
+
+  /* 流程步骤 */
+  .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .step{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:18px 14px;text-align:center}
+  .step .n{width:26px;height:26px;border-radius:50%;background:var(--bg-3);color:var(--text-2);font-weight:700;display:grid;place-items:center;margin:0 auto 10px;font-size:13px}
+  .step .t{font-size:14px;font-weight:600}
+  .step .d{font-size:12px;color:var(--text-3);margin-top:4px}
+
+  /* 下载信息条 */
+  .dl-box{background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:30px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .dl-info h3{font-size:20px;margin-bottom:6px}
+  .dl-info p{color:var(--text-2);font-size:14px}
+  .dl-specs{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;font-size:13px;color:var(--text-3)}
+  .dl-specs b{color:var(--text-2);font-weight:600}
+
+  /* FAQ */
+  .faq{display:flex;flex-direction:column;gap:12px}
+  .faq-item{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .faq-q{padding:18px 22px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px}
+  .faq-q .arrow{color:var(--text-3);transition:transform .2s}
+  .faq-item.open .arrow{transform:rotate(180deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease;color:var(--text-2);font-size:14px}
+  .faq-a p{padding:0 22px 18px}
+
+  footer{border-top:1px solid var(--line);padding:28px 0;color:var(--text-3);font-size:13px}
+  .foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  @media (max-width:860px){
+    .grid,.shots{grid-template-columns:repeat(2,1fr)}
+    .steps{grid-template-columns:repeat(3,1fr)}
+    h1{font-size:30px}
+    .nav-links{display:none}
+  }
+  @media (max-width:560px){
+    .grid,.shots{grid-template-columns:1fr}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .dl-box{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <span class="logo">影</span>
+      七影画布 <small>Flowspace</small>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">功能</a>
+      <a href="#shots">界面预览</a>
+      <a href="#flow">制作流程</a>
+      <a href="#download">下载</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="badge">Windows 桌面端 · v1.0.0 · 工程保存在本机</div>
+      <h1>在一块画布上把剧本做成短剧成片</h1>
+      <p class="sub">七影画布是一款 Windows 桌面软件。剧本拆解、脚本分镜、参考图、关键帧、视频片段到合成成片，各环节以节点排在同一张画布上；可直连 ComfyUI，提示词模板在设置里按用途、风格、模型三层修改。</p>
+      <div class="cta">
+        <a class="btn btn-primary" id="dlBtn" href="#">下载 Windows 版</a>
+        <a class="btn btn-ghost" href="#shots">查看界面</a>
+      </div>
+      <div class="meta" id="dlMeta">Windows 10 / 11 · 64 位 · 安装包约 43.3 MB</div>
+    </div>
+  </section>
+
+  <!-- ===== 功能 ===== -->
+  <section id="features">
+    <div class="wrap">
+      <h2 class="sec-title">功能说明</h2>
+      <p class="sec-desc">把出图、出视频的各个环节固定成画布节点，方便回看提示词、引用图和节点状态。</p>
+      <div class="grid">
+        <div class="card">
+          <h3>节点化流程</h3>
+          <p>剧本、脚本、参考图、关键帧、视频片段、合成成片依次排在画布上；每个节点的提示词、引用图和状态都留在原处，可接着上次继续跑。</p>
+        </div>
+        <div class="card">
+          <h3>连接 ComfyUI</h3>
+          <p>可填自建或云端 ComfyUI 地址；设为默认后出图优先走该实例，不再调用云端 API。</p>
+        </div>
+        <div class="card">
+          <h3>提示词模板可改</h3>
+          <p>用途、风格、模型三层模板分开编辑；内置默认可直接用，改完保存为自己的模板，也能一键恢复默认。</p>
+        </div>
+        <div class="card">
+          <h3>可选美术风格</h3>
+          <p>内置真人实拍、纪实市井、复古胶片、暗黑悬疑、3D 国漫、仙侠 CG、国风插画、赛璐璐、厚涂、赛博朋克等 20 种；风格词随所选风格写进提示词。</p>
+        </div>
+        <div class="card">
+          <h3>额度用完即停</h3>
+          <p>可打开「额度用完即停止」开关；检测到 ComfyUI 已连接时优先走本地实例，模型无额度即停止，不继续产生费用。</p>
+        </div>
+        <div class="card">
+          <h3>资产复用</h3>
+          <p>角色、场景、道具参考图作为资产保存，后续关键帧和视频引用同一份设定，减少跨镜头换脸、换装和画风不一致。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 界面预览 ===== -->
+  <section id="shots">
+    <div class="wrap">
+      <h2 class="sec-title">界面预览</h2>
+      <p class="sec-desc">以下为软件实际运行截图。</p>
+      <div class="shots">
+        <figure class="shot">
+          <div class="shot-bar"><i></i><i></i><i></i><span>项目列表</span></div>
+          <img src="assets/shot-home.png" alt="七影画布项目列表界面" loading="lazy">
+          <figcaption><b>项目列表</b>本地工程按卡片排列，可新建、导入、导出或删除。</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot-bar"><i></i><i></i><i></i><span>画布编排</span></div>
+          <img src="assets/shot-canvas.png" alt="七影画布节点编排界面" loading="lazy">
+          <figcaption><b>画布编排</b>脚本、分镜与参考图节点连线排列，右侧为智能体面板。</figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot-bar"><i></i><i></i><i></i><span>提示词模板设置</span></div>
+          <img src="assets/shot-templates.png" alt="提示词模板设置界面" loading="lazy">
+          <figcaption><b>提示词模板</b>按用途、风格、模型三层编辑，留空则使用内置默认模板。</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 流程 ===== -->
+  <section id="flow">
+    <div class="wrap">
+      <h2 class="sec-title">制作顺序</h2>
+      <p class="sec-desc">前一环节的产出作为下一环节的输入；每一步都能在画布上回看提示词与参考依据。</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="t">剧本</div><div class="d">导入 / 粘贴剧本</div></div>
+        <div class="step"><div class="n">2</div><div class="t">脚本</div><div class="d">场次与节拍拆解</div></div>
+        <div class="step"><div class="n">3</div><div class="t">参考图</div><div class="d">角色 / 场景 / 道具</div></div>
+        <div class="step"><div class="n">4</div><div class="t">关键帧</div><div class="d">分镜首帧静态状态</div></div>
+        <div class="step"><div class="n">5</div><div class="t">视频片段</div><div class="d">逐镜生成与对口型</div></div>
+        <div class="step"><div class="n">6</div><div class="t">合成成片</div><div class="d">字幕 / 拼接 / 导出</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 下载 ===== -->
+  <section id="download">
+    <div class="wrap">
+      <div class="dl-box">
+        <div class="dl-info">
+          <h3>下载安装包</h3>
+          <p>NSIS 安装程序，双击安装，带开始菜单和卸载项；ffmpeg 与技能资源已打包在内。</p>
+          <div class="dl-specs">
+            <span>版本 <b>1.0.0</b></span>
+            <span>平台 <b>Windows x64</b></span>
+            <span>体积 <b>约 43.3 MB</b></span>
+            <span>运行时 <b>WebView2（Win11 自带）</b></span>
+          </div>
+        </div>
+        <a class="btn btn-primary" id="dlBtn2" href="#">下载安装包</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section id="faq">
+    <div class="wrap">
+      <h2 class="sec-title">常见问题</h2>
+      <div class="faq" style="margin-top:28px">
+        <div class="faq-item">
+          <div class="faq-q">安装时 SmartScreen 提示「未知发布者」？<span class="arrow">▾</span></div>
+          <div class="faq-a"><p>当前安装包尚未做代码签名。确认安装包来源为本官网后，点击「更多信息 → 仍要运行」即可。软件不写系统目录，默认安装在当前用户目录下，可随时卸载。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">需要自己准备 GPU 或模型吗？<span class="arrow">▾</span></div>
+          <div class="faq-a"><p>软件本身只负责编排与本地逻辑；出图、出视频依赖你配置的模型供应商或 ComfyUI 实例。可以直连自建 ComfyUI，也可以在设置里填入云端模型的 API Key。文本模型无额度时，分镜走本地规则兜底。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">提示词可以自己改吗？<span class="arrow">▾</span></div>
+          <div class="faq-a"><p>可以。设置 → 提示词模板里分「按用途 / 按美术风格 / 按模型」三层编辑，内置默认作为参考；改完保存为自定义，随时可恢复默认。图像提示词建议写英文，视频提示词可使用中文。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">我的剧本和素材存在哪里？<span class="arrow">▾</span></div>
+          <div class="faq-a"><p>画布数据、资产表与模板配置保存在本机浏览器本地存储与用户目录下；上传的参考素材存放在项目素材库，不上传到第三方服务器。卸载前如需保留工程，请先导出画布与素材。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">支持 Mac / Linux 吗？<span class="arrow">▾</span></div>
+          <div class="faq-a"><p>当前发布的是 Windows x64 安装包。内核为跨端框架，后续可按需补充 macOS 与 Linux 构建；请以本页面下载区实际提供的版本为准。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>© 2026 七影画布 Flowspace</div>
+    <div>Windows 桌面端 · 工程保存在本机 · 可直连 ComfyUI</div>
+  </div>
+</footer>
+
+<script>
+/* ===== 下载地址：发布到 GitHub Releases 后，把安装包作为 Release 资产上传即可；
+   若换托管地址，只改这一处。latest/download 路径会自动指向最新版本。 ===== */
+var DOWNLOAD_URL = 'https://github.com/lis212-cloud/QiYingcanvas/releases/latest/download/Flowspace_1.0.0_x64-setup.exe';
+
+document.getElementById('dlBtn').href = DOWNLOAD_URL;
+document.getElementById('dlBtn2').href = DOWNLOAD_URL;
+
+/* FAQ 手风琴 */
+document.querySelectorAll('.faq-q').forEach(function(q){
+  q.addEventListener('click', function(){
+    var item = q.parentElement;
+    var ans = item.querySelector('.faq-a');
+    var open = item.classList.toggle('open');
+    ans.style.maxHeight = open ? ans.scrollHeight + 'px' : '0';
+  });
+});
+</script>
+</body>
+</html>
