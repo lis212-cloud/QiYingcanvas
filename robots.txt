@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lis212-cloud.github.io/QiYingcanvas/sitemap.xml
